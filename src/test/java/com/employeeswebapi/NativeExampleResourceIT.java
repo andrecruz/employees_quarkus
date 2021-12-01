@@ -1,4 +1,4 @@
-package com.example;
+package com.employeeswebapi;
 
 import io.quarkus.test.junit.NativeImageTest;
 
