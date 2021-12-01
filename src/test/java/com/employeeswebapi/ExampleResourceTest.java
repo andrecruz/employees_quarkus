@@ -1,4 +1,4 @@
-package com.example;
+package com.employeeswebapi;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
+@Deprecated
 @QuarkusTest
 public class ExampleResourceTest {
 
