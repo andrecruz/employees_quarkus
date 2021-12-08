@@ -2,104 +2,85 @@ package com.employeeswebapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.MockitoAnnotations.openMocks;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.NotFoundException;
 
-import javax.validation.constraints.AssertTrue;
-
+import io.quarkus.test.junit.QuarkusTest;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 
+@QuarkusTest
 public class EmployeesManagerTest {
 
-    private final static Employee EMPLOYEE_1 = createNewEmployee(1, "Thomas", "Baker", 2500.00);
-    private final static Employee EMPLOYEE_2 = createNewEmployee(2, "Andre", "Cruz", 3300.00);
-    private final static Employee EMPLOYEE_3 = createNewEmployee(3, "John", "Campbell", 2800.00);
-    private final static Employee EMPLOYEE_4 = createNewEmployee(4, "Andrea", "Vieira", 2800.00);
+    private static final Employee EMPLOYEE_1 = createNewEmployee(1L, "Thomas", "Baker", 2500.00);
+    private static final Employee EMPLOYEE_2 = createNewEmployee(2L, "Andre", "Cruz", 3300.00);
+    private static final Employee EMPLOYEE_3 = createNewEmployee(3L, "John", "Campbell", 2800.00);
+    private static final Employee EMPLOYEE_4 = createNewEmployee(1L, "John", "Campbell", 2800.00);
 
-    private AutoCloseable autoCloseable;
-
-    @InjectMocks
+    @Inject
     EmployeesManager victim;
 
+    @Transactional
     @BeforeEach
-    void setupEach() {
-        autoCloseable = openMocks(this);
+    void populateDB() {
+        victim.deleteAll();
+        victim.persist(EMPLOYEE_1);
+        victim.persist(EMPLOYEE_2);
     }
 
+    @Transactional
     @AfterEach
-    void tearDown() throws Exception {
-        autoCloseable.close();
+    void cleanup() {
+        victim.deleteAll();
     }
 
     @Test
     void Should_GetEmployeeByID() {
-        victim.setEmployeeList(createNewEmployeeList());
-
-        assertTrue(victim.getEmployeeByID(1) == EMPLOYEE_1);
+        assertTrue(EMPLOYEE_1.equals(victim.getEmployeeByID(1L)));
     }
 
     @Test
-    void Should_AddAnEmployeeToTheList() {
-        victim.setEmployeeList(createNewEmployeeList());
-        victim.addNewEmployee(EMPLOYEE_4);
+    void Should_AddNewEmployeeToTheList() {
+        victim.addNewEmployee(EMPLOYEE_3);
 
-        assertTrue(victim.getEmployeeList().contains(EMPLOYEE_4));
+        assertTrue(victim.getAllEmployees().contains(EMPLOYEE_3));
     }
 
     @Test
+    @SneakyThrows
     void Should_DeleteAnEmployeeFromTheList() {
-        victim.setEmployeeList(createNewEmployeeList());
-        victim.deleteAnEmployee(1);
+        victim.deleteAnEmployee(1L);
 
-        assertFalse(victim.getEmployeeList().contains(EMPLOYEE_1));
+        assertFalse(victim.getAllEmployees().contains(EMPLOYEE_1));
     }
 
     @Test
+    @SneakyThrows
     void Should_UpdateAnEmployeeInfo() {
-        Employee expectedEmployee = createNewEmployee(1, "Andrea", "Vieira", 2800.00);
-        victim.setEmployeeList(createNewEmployeeList());
-        victim.updateEmployeeInfo(1, EMPLOYEE_4);
+        victim.updateEmployeeInfo(1L, EMPLOYEE_3);
 
-        List<Employee> employeeList = new ArrayList<>(victim.getEmployeeList());
-        assertTrue(compareEmployeesInfo(employeeList.get(victim.getEmployeeIndexByEmployeeID(1)), expectedEmployee));
+        assertTrue(victim.getEmployeeByID(1L).equals(EMPLOYEE_4));
     }
+
 
     @Test
     void Should_ThrowException_WhenEmployeeDoesNotExist() {
-        String expectedException = "Employee does not exist";
-        victim.setEmployeeList(createNewEmployeeList());
+        final String expectedException = "Employee does not exist";
 
-        final var exception = Assertions.assertThrows(RuntimeException.class, () -> victim.updateEmployeeInfo(5, EMPLOYEE_4));
+        final var exception = Assertions.assertThrows(NotFoundException.class, () -> victim.updateEmployeeInfo(4L, EMPLOYEE_4));
 
         assertEquals(expectedException, exception.getMessage());
     }
 
-    private boolean compareEmployeesInfo(Employee employee1, Employee employee2) {
-        return employee1.getFirstName().contentEquals(employee2.getFirstName()) && employee1.getLastName().contentEquals(employee2.getLastName())
-            && employee1.getBaseSalary().equals(employee2.getBaseSalary()) && employee1.getEmployeeID() == employee2.getEmployeeID();
-    }
-
-    private static Set<Employee> createNewEmployeeList() {
-        Set<Employee> dummyEmployeeList = new HashSet<>();
-        dummyEmployeeList.add(EMPLOYEE_1);
-        dummyEmployeeList.add(EMPLOYEE_2);
-        dummyEmployeeList.add(EMPLOYEE_3);
-
-        return dummyEmployeeList;
-    }
 
 
-    private static Employee createNewEmployee(final int employeeID, final String firstName, final String lastName,
+    private static Employee createNewEmployee(final Long employeeID, final String firstName, final String lastName,
                                               final double baseSalary) {
         return Employee.builder()
             .employeeID(employeeID)

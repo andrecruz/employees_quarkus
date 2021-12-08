@@ -4,9 +4,15 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
+## Create and Run PostgresSQL docker image
+
+```shell script
+docker run --name hibernate_db -e POSTGRES_USER=hibernate -e POSTGRES_PASSWORD=hibernate -e POSTGRES_DB=hibernate_db -p 5432:5432 postgres:10.5
+```
+
 ## Running the application in dev mode
 
-You can run your application in dev mode that enables live coding using:
+You can run the application in dev mode that enables live coding using:
 
 ```shell script
 ./mvnw compile quarkus:dev
@@ -52,6 +58,24 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 You can then execute your native executable with: `./target/employees_quarkus-1.0-SNAPSHOT-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
+
+## Rest Endpoints
+
+### Add a new Employee
+http://localhost:8080/employees/addNewEmployee
+
+### Get all Employees
+http://localhost:8080/employees/getAllEmployees
+
+### Get an Employee by ID
+http://localhost:8080/employees/getEmployeeByID/{employeeID}
+
+### Delete an Employee by ID
+http://localhost:8080/employees/deleteEmployee/{employeeID}
+
+### Update an Employee info
+http://localhost:8080/employees/updateEmployeeInfo/{employeeID}
+
 
 ## Provided Code
 
